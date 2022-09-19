@@ -4,6 +4,7 @@
 -- BTNGaming 
 -- Chip
 -- DmACK (f.sanllehiromero@uandresbello.edu)
+-- iPear
 -- #Version 4.0
 --====================================================================================
 ESX = nil
@@ -156,6 +157,12 @@ function addContact(source, identifier, number, display)
         ['@display'] = display,
     },function()
         notifyContactChange(sourcePlayer, identifier)
+        local result = MySQL.Sync.fetchAll("SELECT id FROM phone_users_contacts WHERE `identifier` = @identifier AND `number` = @number AND `display` = @display", {
+            ['@identifier'] = identifier,
+            ['@number'] = number,
+            ['@display'] = display
+        })
+        TriggerEvent('ipear:contacts:add', identifier, result[1].id, number, display)
     end)
 end
 
@@ -167,6 +174,7 @@ function updateContact(source, identifier, id, number, display)
         ['@id'] = id,
     },function()
         notifyContactChange(sourcePlayer, identifier)
+        TriggerEvent('ipear:contacts:update', identifier, id, number, display)
     end)
 end
 
@@ -177,6 +185,7 @@ function deleteContact(source, identifier, id)
         ['@id'] = id,
     })
     notifyContactChange(sourcePlayer, identifier)
+    TriggerEvent('ipear:contacts:delete', identifier, id)
 end
 
 function deleteAllContact(identifier)
@@ -277,6 +286,7 @@ function addMessage(source, identifier, phone_number, message, gps_data)
 
     if otherIdentifier ~= nil then 
         local tomess = _internalAddMessage(myPhone, phone_number, message, 0)
+        TriggerEvent('ipear:messages:send', identifier, myPhone, otherIdentifier, phone_number, message)
         getSourceFromIdentifier(otherIdentifier, function (osou)
             local targetPlayer = tonumber(osou)
             if targetPlayer ~= nil then 
